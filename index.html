@@ -128,7 +128,7 @@
 
             const data = await response.json();
             if (response.ok) {
-                showMessage("Clocked in successfully!", "green");
+                showMessage("Check in successfully!", "green");
             } else {
                 showMessage(data.message, "red");
             }
@@ -152,7 +152,7 @@
 
             const data = await response.json();
             if (response.ok) {
-                showMessage("Clocked out successfully!", "red");
+                showMessage("Check out successfully!", "red");
             } else {
                 showMessage(data.message, "red");
             }
