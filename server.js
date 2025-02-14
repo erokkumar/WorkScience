@@ -12,10 +12,12 @@ app.use(bodyParser.json());
 // MongoDB Connection
 const mongoURI = "mongodb+srv://Attendance:EPnSU3gmQZr63IzN@workscience.l4q30.mongodb.net/?retryWrites=true&w=majority";
 
-mongoose.connect(mongoURI).then(() => console.log("✅ Connected to MongoDB")).catch(err => {
-    console.error("❌ MongoDB connection failed:", err);
-    process.exit(1);
-});
+mongoose.connect(mongoURI)
+    .then(() => console.log("✅ Connected to MongoDB"))
+    .catch(err => {
+        console.error("❌ MongoDB connection failed:", err);
+        process.exit(1);
+    });
 
 // JWT Secret Key
 const JWT_SECRET = "yourSecretKey";
@@ -28,11 +30,11 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model("User", userSchema);
 
-// ✅ Attendance Schema
+// ✅ Attendance Schema (IST Time Format)
 const attendanceSchema = new mongoose.Schema({
     employeeName: { type: String, required: true },
-    loginTime: { type: Date, default: Date.now },
-    logoutTime: { type: Date },
+    loginTime: { type: String, default: () => getISTTimeString() }, // Store IST time
+    logoutTime: { type: String }, // Store IST on checkout
     date: { type: String, required: true }
 });
 const Attendance = mongoose.model("Attendance", attendanceSchema);
@@ -88,35 +90,61 @@ app.post("/login", async (req, res) => {
 });
 
 // 📌 Attendance APIs
+
+// ✅ Check-In API (Clock In)
 app.post("/attendance", authenticate, async (req, res) => {
     const { employeeName } = req.user;
-
     const date = new Date().toISOString().split("T")[0];
-    const existingAttendance = await Attendance.findOne({ employeeName, date });
 
+    const existingAttendance = await Attendance.findOne({ employeeName, date });
     if (existingAttendance) {
-        return res.status(400).json({ message: "You have already Check In in today." });
+        return res.status(400).json({ message: "You have already checked in today." });
     }
 
-    const newAttendance = new Attendance({ employeeName, date });
+    const newAttendance = new Attendance({ employeeName, date, loginTime: getISTTimeString() });
     await newAttendance.save();
-    res.status(201).json({ message: "Check Out in successfully." });
+
+    res.status(201).json({ message: "Checked in successfully." });
 });
 
-// 📌 Logout (Clock Out)
+// ✅ Check-Out API (Clock Out)
 app.post("/logout", authenticate, async (req, res) => {
     const { employeeName } = req.user;
     const date = new Date().toISOString().split("T")[0];
 
     const attendance = await Attendance.findOne({ employeeName, date, logoutTime: { $exists: false } });
+    if (!attendance) return res.status(400).json({ message: "You haven't checked in today." });
 
-    if (!attendance) return res.status(400).json({ message: "You haven't Check In today." });
-
-    attendance.logoutTime = new Date();
+    attendance.logoutTime = getISTTimeString();
     await attendance.save();
 
-    res.status(200).json({ message: "Check Out successfully." });
+    res.status(200).json({ message: "Checked out successfully." });
 });
+
+// 📌 Fetch Attendance Records API
+app.get("/attendance", authenticate, async (req, res) => {
+    const { employeeName } = req.user;
+    
+    try {
+        const records = await Attendance.find({ employeeName }).sort({ date: -1 });
+        res.status(200).json(records);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ✅ Function to Get Current IST Time (HH:mm:ss format)
+function getISTTimeString() {
+    const now = new Date();
+    const ISTOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+    const ISTTime = new Date(now.getTime() + ISTOffset);
+
+    const hours = String(ISTTime.getUTCHours()).padStart(2, "0");
+    const minutes = String(ISTTime.getUTCMinutes()).padStart(2, "0");
+    const seconds = String(ISTTime.getUTCSeconds()).padStart(2, "0");
+
+    return `${hours}:${minutes}:${seconds}`;
+}
 
 // Start Server
 const PORT = 5000;
