@@ -54,6 +54,12 @@
                 <button onclick="handleClockOut()" class="bg-red-500 text-white px-5 py-2 rounded-lg w-full">Check Out</button>
             </div>
             <button onclick="handleLogout()" class="mt-4 bg-gray-600 text-white px-5 py-2 rounded-lg w-full">Logout</button>
+            
+            <!-- Display Current Date and Time -->
+            <div id="timeDisplay" class="mt-4 text-lg font-medium text-gray-700">
+                <p>Check In Time: <span id="checkInTime"></span></p>
+                <p>Check Out Time: <span id="checkOutTime"></span></p>
+            </div>
         </div>
 
         <!-- Message Display -->
@@ -128,7 +134,10 @@
 
             const data = await response.json();
             if (response.ok) {
-                showMessage("Check in successfully!", "green");
+                showMessage("Clocked in successfully!", "green");
+                // Fetch and display the current time
+                const currentTime = new Date().toLocaleString();
+                document.getElementById("checkInTime").textContent = currentTime;
             } else {
                 showMessage(data.message, "red");
             }
@@ -152,7 +161,10 @@
 
             const data = await response.json();
             if (response.ok) {
-                showMessage("Check out successfully!", "red");
+                showMessage("Clocked out successfully!", "red");
+                // Fetch and display the current time
+                const currentTime = new Date().toLocaleString();
+                document.getElementById("checkOutTime").textContent = currentTime;
             } else {
                 showMessage(data.message, "red");
             }
