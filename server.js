@@ -121,12 +121,13 @@ app.post("/logout", authenticate, async (req, res) => {
     res.status(200).json({ message: "Checked out successfully." });
 });
 
-// 📌 Fetch Attendance Records API
-app.get("/attendance", authenticate, async (req, res) => {
+// 📌 Fetch Today's Attendance Records API
+app.get("/attendance/today", authenticate, async (req, res) => {
     const { employeeName } = req.user;
-    
+    const date = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+
     try {
-        const records = await Attendance.find({ employeeName }).sort({ date: -1 });
+        const records = await Attendance.find({ employeeName, date });
         res.status(200).json(records);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -147,5 +148,5 @@ function getISTTimeString() {
 }
 
 // Start Server
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
