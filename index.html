@@ -6,8 +6,8 @@
     <title>WorkScience</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 p-6">
-    <div class="bg-white p-8 shadow-lg rounded-2xl w-96 text-center">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 p-6">
+    <div class="bg-white p-9 shadow-lg rounded-2xl w-96 text-center">
         <img src="img/logo2.png" alt="Company Logo" class="mx-auto mb-4" style="width: 16rem; height: 11rem;">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Employee Attendance</h1>
 
@@ -111,8 +111,36 @@
                 document.getElementById("loggedInUser").textContent = userId;
                 document.getElementById("loginForm").classList.add("hidden");
                 showMessage("Login successful!", "green");
+
+                // Fetch today's attendance records
+                await fetchTodayAttendance();
             } else {
                 showMessage(data.message, "red");
+            }
+        }
+
+        // Fetch Today's Attendance Records
+        async function fetchTodayAttendance() {
+            const token = sessionStorage.getItem("token");
+            if (!token) return;
+
+            const response = await fetch("https://workscience.onrender.com/attendance/today", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: token,
+                },
+            });
+
+            const data = await response.json();
+            if (response.ok && data.length > 0) {
+                const todayRecord = data[0]; // Get the first record for today
+                if (todayRecord.loginTime) {
+                    document.getElementById("checkInTime").textContent = todayRecord.loginTime;
+                }
+                if (todayRecord.logoutTime) {
+                    document.getElementById("checkOutTime").textContent = todayRecord.logoutTime;
+                }
             }
         }
 
