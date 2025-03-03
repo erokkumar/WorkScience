@@ -1,5 +1,5 @@
 # Employee Attendance System
-
+![Alt Text](https://drive.google.com/file/d/1zklWVe7FR35XInP0AKP-FjVyReOJZsgz/view?usp=sharing)
 ## Overview
 The **Employee Attendance System** is designed for **Work Science** company to efficiently track employee attendance, work hours, and login/logout times. It provides a secure and user-friendly platform for managing workforce attendance records.
 
